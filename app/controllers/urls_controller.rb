@@ -16,6 +16,7 @@ class UrlsController < ApplicationController
       end
     else
       update_access_count(url)
+      short_url = shortened(url)
       render json: { short_url: short_url }
     end
   rescue StandardError => e

@@ -3,7 +3,7 @@
 class Url < ApplicationRecord
   UNIQUE_ID_LENGTH = 6
   validates :original_url, presence: true
-  # validates_format_of :original_url, with: /^(http|https):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/ix
+  validates :original_url, format: { with: URI::DEFAULT_PARSER.make_regexp }
   before_create :generate_short_url
   before_create :sanitize
 
@@ -29,6 +29,5 @@ class Url < ApplicationRecord
     original_url.strip!
     self.sanitized_url = original_url.downcase.gsub(%r{(https?://)|(www\.)}, '')
     sanitized_url.slice!(-1) if sanitized_url[-1] == '/'
-    self.sanitized_url = "http://#{sanitized_url}"
   end
 end
