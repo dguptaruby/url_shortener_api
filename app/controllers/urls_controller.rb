@@ -15,10 +15,11 @@ class UrlsController < ApplicationController
         render json: url.errors, status: :unprocessable_entity
       end
     else
-      new_access_count = url.access_count + 1
-      url.update(access_count: new_access_count)
+      update_access_count(url)
       render json: { short_url: short_url }
     end
+  rescue StandardError => e
+    render_error(e)
   end
 
   def top
@@ -28,6 +29,8 @@ class UrlsController < ApplicationController
       urls_data << { title: url.title, short_url: shortened(url) }
     end
     render json: urls_data
+  rescue StandardError => e
+    render_error(e)
   end
 
   def shortened(url)
@@ -36,7 +39,14 @@ class UrlsController < ApplicationController
   end
 
   def show
-    render json: @url.sanitized_url
+    if @url.nil?
+      render json: 'No url found'
+    else
+      update_access_count(@url)
+      render json: @url.sanitized_url
+    end
+  rescue StandardError => e
+    render_error(e)
   end
 
   private
@@ -46,6 +56,11 @@ class UrlsController < ApplicationController
   end
 
   def url_params
-    params.require(:@url).permit(:original_url)
+    params.require(:url).permit(:original_url)
+  end
+
+  def update_access_count(url)
+    new_access_count = url.access_count + 1
+    url.update(access_count: new_access_count)
   end
 end
